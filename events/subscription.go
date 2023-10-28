@@ -5,6 +5,7 @@ type EventSubscription[T interface{}] struct {
 	Handler EventCallable[T]
 }
 
+// Unsubscribes an event handler
 func (subscription *EventSubscription[T]) unsubscribe() {
 	subscription.Emitter.unsubscribe(subscription.Handler)
 }

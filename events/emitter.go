@@ -6,10 +6,12 @@ import (
 	"github.com/Goldziher/go-utils/sliceutils"
 )
 
+// A class that can deliver events to subscribers
 type SyncEventEmitter[T interface{}] struct {
 	Handlers []SyncEventHandler[T]
 }
 
+// Subscribes the given handler and waits for events
 func (emitter *SyncEventEmitter[T]) subscribe(handler EventCallable[T]) *EventSubscription[T] {
 	if emitter.Handlers == nil {
 		emitter.Handlers = []SyncEventHandler[T]{}
@@ -25,6 +27,7 @@ func (emitter *SyncEventEmitter[T]) subscribe(handler EventCallable[T]) *EventSu
 	return subscription
 }
 
+// Unsubscribes the given handler
 func (emitter *SyncEventEmitter[T]) unsubscribe(handler EventCallable[T]) {
 	if emitter.Handlers == nil {
 		emitter.Handlers = []SyncEventHandler[T]{}
@@ -39,6 +42,7 @@ func (emitter *SyncEventEmitter[T]) unsubscribe(handler EventCallable[T]) {
 	}
 }
 
+// Emits the given event to event subscribers
 func (emitter *SyncEventEmitter[T]) emit(event *T) {
 	for _, v := range emitter.Handlers {
 		v.execute(event)
