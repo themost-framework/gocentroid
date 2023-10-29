@@ -18,7 +18,7 @@ type ObjectNameValidator struct {
 }
 
 func (validator *ObjectNameValidator) Init(pattern string) *ObjectNameValidator {
-	validator.Pattern = `^` + pattern + `$`
+	validator.Pattern = pattern
 	validator.QualifiedPattern = `(^\*$)|^` + pattern + `((\.|\/)` + pattern + `)*(\.\*)?$`
 	return validator
 }
@@ -31,13 +31,13 @@ func (validator *ObjectNameValidator) Test(name string, qualified bool, throwErr
 			return matched, errors.New("invalid database object name")
 		}
 	} else {
-		matched, _ = regexp.MatchString(validator.Pattern, name)
+		matched, _ = regexp.MatchString(`^`+validator.Pattern+`$`, name)
 	}
 	return matched, nil
 }
 
 func (validator *ObjectNameValidator) Escape(name string, format string) (escaped string, err error) {
-	valid, err := validator.Test(name, false, true)
+	valid, err := validator.Test(name, true, true)
 	if !valid {
 		return "", err
 	}

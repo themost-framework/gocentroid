@@ -4,7 +4,10 @@ go 1.21.3
 
 require github.com/stretchr/testify v1.8.4
 
-require github.com/Goldziher/go-utils v1.7.4 // indirect
+require (
+	github.com/Goldziher/go-utils v1.7.4 // indirect
+	golang.org/x/text v0.13.0 // indirect
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
