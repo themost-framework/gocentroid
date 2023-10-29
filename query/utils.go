@@ -31,11 +31,8 @@ func (utils *SqlUtils) Escape(value any) string {
 		} else {
 			return "false"
 		}
-	case int:
-	case int64:
-	case int32:
-		val := value.(int64)
-		return strconv.FormatInt(val, 10)
+	case int, int64, int32:
+		return fmt.Sprintf("%v", value)
 	case float32:
 		val := value.(float64)
 		return strconv.FormatFloat(val, 'f', -1, 32)
@@ -45,11 +42,10 @@ func (utils *SqlUtils) Escape(value any) string {
 	case time.Time:
 		val := value.(time.Time)
 		return val.Format("2006-01-02 15:04:05.000-07:00")
+	default:
+		str := fmt.Sprintf("%v", value)
+		return utils.EscapeString(str)
 	}
-
-	str := fmt.Sprintf("%v", value)
-	return utils.EscapeString(str)
-
 }
 
 func (utils *SqlUtils) EscapeString(val string) string {

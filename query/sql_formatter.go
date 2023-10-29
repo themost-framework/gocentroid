@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/themost-framework/gocentroid/events"
 )
 
 func FormatMethodName(name string) string {
@@ -65,13 +67,19 @@ func DefaultSqlDialectOptions() SqlDialectOptions {
 	}
 }
 
+type ResolvingCollectionArgs struct {
+	Collection any
+}
+
 type SqlDialect struct {
-	NameFormat string
-	Options    SqlDialectOptions
+	NameFormat          string
+	Options             SqlDialectOptions
+	ResolvingCollection events.SyncEventEmitter[ResolvingCollectionArgs]
 }
 
 func (dialect *SqlDialect) Init(options SqlDialectOptions) {
 	dialect.Options = options
+	dialect.ResolvingCollection = events.SyncEventEmitter[ResolvingCollectionArgs]{}
 }
 
 func (dialect *SqlDialect) EscapeName(value string) (string, error) {
@@ -101,7 +109,7 @@ func (dialect *SqlDialect) Escape(value any) (string, error) {
 				// use dialect to convert value
 				var method = thisType.MethodByName(FormatMethodName(key))
 				if !method.IsValid() {
-					return "", errors.New("the specified method is unknown")
+					return "", &UnknowMethodError{}
 				}
 				// try to get arguments
 				args := val.MapIndex(keys[0])
@@ -123,7 +131,7 @@ func (dialect *SqlDialect) Escape(value any) (string, error) {
 				var result = res[0]
 				var err = res[1]
 				if !err.IsNil() {
-					return "", errors.New(err.String())
+					return "", err.Interface().(error)
 				}
 				return result.String(), nil
 
@@ -320,6 +328,58 @@ func (dialect *SqlDialect) Trim(arg any) (string, error) {
 	return fmt.Sprintf("TRIM(%s)", expr), nil
 }
 
+func (dialect *SqlDialect) IndexOfBytes(expr any, search any) (string, error) {
+	strExpr, err := dialect.Escape(expr)
+	if err != nil {
+		return "", err
+	}
+	strSearch, err := dialect.Escape(search)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("(LOCATE(%s,%s) - 1)", strSearch, strExpr), nil
+}
+
+func (dialect *SqlDialect) IndexOf(expr any, search any) (string, error) {
+	return dialect.IndexOfBytes(expr, search)
+}
+
+func (dialect *SqlDialect) Substr(expr any, pos any, args ...any) (string, error) {
+	strExpr, err := dialect.Escape(expr)
+	if err != nil {
+		return "", err
+	}
+	strPos, err := dialect.Escape(pos)
+	if err != nil {
+		return "", err
+	}
+	if len(args) > 0 {
+		length := args[0]
+		strLength, err := dialect.Escape(length)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("SUBSTRING(%s,%s + 1,%s)", strExpr, strPos, strLength), nil
+	}
+	return fmt.Sprintf("SUBSTRING(%s,%s + 1)", strExpr, strPos), nil
+
+}
+
+func (dialect *SqlDialect) Concat(args ...any) (string, error) {
+	var exprs = []string{}
+	for _, arg := range args {
+		expr, err := dialect.Escape(arg)
+		if err != nil {
+			return "", err
+		}
+		exprs = append(exprs, expr)
+	}
+	result := "CONCAT("
+	result += strings.Join(exprs, ",")
+	result += ")"
+	return result, nil
+}
+
 func (dialect *SqlDialect) ToUpper(arg any) (string, error) {
 	expr, err := dialect.Escape(arg)
 	if err != nil {
@@ -422,6 +482,42 @@ func (dialect *SqlDialect) Cond(ifExpr any, thenExpr any, elseExpr any) (string,
 type SqlFormatter struct {
 }
 
-func (formatter *SqlFormatter) FormatSelect(query QueryExpression) *string {
-	return nil
+func (formatter *SqlFormatter) FormatSelect(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatLimitSelect(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatUpdate(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatInsert(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatDelete(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatJoin(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatOrderBy(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatGroupBy(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) FormatWhere(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
+}
+
+func (formatter *SqlFormatter) Format(query QueryExpression) (string, error) {
+	return "", &NotImplementedError{}
 }
