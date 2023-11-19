@@ -6,8 +6,14 @@ func (m *NotImplementedError) Error() string {
 	return "not yet implemented"
 }
 
-type UnknowMethodError struct{}
+type UnknownMethodError struct{}
 
-func (m *UnknowMethodError) Error() string {
+func (m *UnknownMethodError) Error() string {
 	return "the specified method is unknown"
+}
+
+type InvalidExpressionError struct{}
+
+func (m *InvalidExpressionError) Error() string {
+	return "the specified expression is invalid"
 }

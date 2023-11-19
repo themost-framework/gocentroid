@@ -109,7 +109,7 @@ func (dialect *SqlDialect) Escape(value any) (string, error) {
 				// use dialect to convert value
 				var method = thisType.MethodByName(FormatMethodName(key))
 				if !method.IsValid() {
-					return "", &UnknowMethodError{}
+					return "", &UnknownMethodError{}
 				}
 				// try to get arguments
 				args := val.MapIndex(keys[0])
@@ -483,7 +483,11 @@ type SqlFormatter struct {
 }
 
 func (formatter *SqlFormatter) FormatSelect(query QueryExpression) (string, error) {
+	if query.Query.Select == nil {
+		return "", &InvalidExpressionError{}
+	}
 	return "", &NotImplementedError{}
+
 }
 
 func (formatter *SqlFormatter) FormatLimitSelect(query QueryExpression) (string, error) {

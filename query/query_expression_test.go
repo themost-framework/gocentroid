@@ -8,9 +8,25 @@ import (
 
 func TestNewQueryExpression(t *testing.T) {
 	expr := &QueryExpression{}
-	expr.from("ProductData").pick("id", "name")
+	expr.From("ProductData").Select("id", "name", "price")
 	assert.NotEmpty(t, expr.Query)
-	assert.Equal(t, expr.Query["$collection"], QueryElement{
+	assert.Equal(t, expr.Query.Collection, QueryElement{
+		"ProductData": 1,
+	})
+}
+
+func TestUseSelect(t *testing.T) {
+	expr := &QueryExpression{}
+	expr.From("ProductData").Select("id", "name", QueryElement{
+		"$round": []any{
+			QueryElement{
+				"$getField": "price",
+			},
+			2,
+		},
+	})
+	assert.NotEmpty(t, expr.Query)
+	assert.Equal(t, expr.Query.Collection, QueryElement{
 		"ProductData": 1,
 	})
 }
